@@ -1,7 +1,8 @@
-from src.oddshawk_sdk import rest
+from oddshawk_sdk import Rest
+
 
 def main():
-    client = rest.Rest('', '')
+    client = Rest('', '')
     sports = client.sports()
     for sport in sports:
         print(sport)

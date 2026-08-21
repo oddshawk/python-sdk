@@ -1,0 +1,48 @@
+version: 2.1
+
+orbs:
+  slack: circleci/slack@4.4.2
+
+jobs:
+  test:
+    docker:
+      - image: cimg/python:3.12
+    steps:
+      - checkout
+      - run: python --version
+      - restore_cache:
+          keys:
+            - v1-python-{{ checksum "pyproject.toml" }}
+            - v1-python-
+      - run:
+          name: Install package + dev deps
+          command: |
+            python -m pip install --upgrade pip
+            pip install -e ".[dev]"
+      - save_cache:
+          paths:
+            - ~/.cache/pip
+          key: v1-python-{{ checksum "pyproject.toml" }}
+      - run:
+          name: Syntax
+          command: python -m py_compile src/oddshawk_sdk/rest.py src/oddshawk_sdk/__init__.py example.py
+      - run:
+          name: Unit tests
+          command: pytest
+      - run:
+          name: pip-audit (high+)
+          command: pip-audit --strict --desc on
+      - slack/notify:
+          event: fail
+          mentions: '@developers'
+          template: basic_fail_1
+      - slack/notify:
+          event: pass
+          template: basic_success_1
+
+workflows:
+  test:
+    jobs:
+      - test:
+          context:
+            - Slack

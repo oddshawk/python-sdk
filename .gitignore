@@ -1,1 +1,10 @@
 *__pycache__*
+okf-bundle/work-queues/
+tmp-docs/
+.venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.pip-audit-cache/
+.DS_Store

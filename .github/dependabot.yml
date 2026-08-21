@@ -1,0 +1,10 @@
+# Dependabot — oddshawk-python-sdk (cn-123 SDK wave)
+# Ecosystems: pip (pyproject.toml). No Docker — library package only.
+# CI audit: pip-audit --strict (high+ equivalent) on CircleCI test.
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
