@@ -16,13 +16,13 @@ cn-123 SDK wave (Phase 3). PyPI package name `oddshawk-sdk` (GitHub `oddshawk/py
 |-------|-----------|------------|-------|-------|
 | pip | `pyproject.toml` | `requests>=2.32,<3` | weekly | agent → nathan |
 | Python CI | `.circleci/config.yml` | `cimg/python:3.12`; `requires-python >=3.10` | monthly | agent → nathan |
-| CI audit | `pip-audit --strict` | blocking on `test` | weekly | agent |
+| CI audit | `pip-audit --desc on --skip-editable` | blocking on `test` (no `--strict` until PyPI) | weekly | agent |
 | Publish | PyPI | Nathan-only twine/upload | on merge | nathan |
 
 ## (a) Locations and pins
 
 - Dependabot weekly pip (no Docker — no Dockerfile)
-- CircleCI `test`: editable install `.[dev]` + `py_compile` + `pytest` + blocking `pip-audit --strict`
+- CircleCI `test`: editable install `.[dev]` + `py_compile` + `pytest` + blocking `pip-audit --desc on --skip-editable` (drop `--strict` until first PyPI upload)
 - **Highlights:** `requests` runtime; `pytest` + `pip-audit` as optional `dev` extras
 - **Packaging note:** minimal installable layout for PyPI (`src/oddshawk_sdk`). Parallel cn-127 tip has a richer catalog refresh on a separate branch — reconcile before dual-merge if both land.
 

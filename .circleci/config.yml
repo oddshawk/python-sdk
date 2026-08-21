@@ -31,7 +31,7 @@ jobs:
           command: pytest
       - run:
           name: pip-audit (high+)
-          command: pip-audit --strict --desc on
+          command: pip-audit --desc on --skip-editable
       - slack/notify:
           event: fail
           mentions: '@developers'

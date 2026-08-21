@@ -33,7 +33,7 @@ None required by the library. Credentials are constructor args (`user`, `key`). 
 ## Deployment
 
 - **Distribution:** PyPI (`oddshawk-sdk`) — Nathan publishes after green merge (cn-123).
-- **CI/CD:** CircleCI `test` — pytest + blocking `pip-audit --strict`.
+- **CI/CD:** CircleCI `test` — pytest + blocking `pip-audit --desc on --skip-editable` (no `--strict` until first PyPI upload).
 - **Runtime:** library only — no long-running service.
 
 ## Related systems
