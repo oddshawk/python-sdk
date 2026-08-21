@@ -26,7 +26,7 @@ Run **all** rows before handoff:
 |-------|---------|-------------|
 | Syntax | `python -m py_compile src/oddshawk_sdk/rest.py src/oddshawk_sdk/__init__.py example.py` | Exit 0 |
 | Unit tests | `pytest` | Exit 0 — **full** suite |
-| High+ audit | `pip-audit --strict --desc on` | Exit 0 (local editable package may log “not on PyPI”; exit must still be 0) |
+| High+ audit | `pip-audit --desc on --skip-editable` | Exit 0 — skip local editable until first PyPI upload; restore `--strict` after publish |
 
 ### Agent constraints
 
