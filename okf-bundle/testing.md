@@ -24,7 +24,7 @@ Run **all** rows before handoff:
 
 | Check | Command | Pass signal |
 |-------|---------|-------------|
-| Syntax | `python -m py_compile src/oddshawk_sdk/rest.py src/oddshawk_sdk/__init__.py example.py` | Exit 0 |
+| Syntax | `python -m py_compile src/oddshawk_sdk/rest.py src/oddshawk_sdk/hashing.py src/oddshawk_sdk/__init__.py example.py` | Exit 0 |
 | Unit tests | `pytest` | Exit 0 — **full** suite |
 | High+ audit | `pip-audit --desc on --skip-editable` | Exit 0 — skip local editable until first PyPI upload; restore `--strict` after publish |
 
