@@ -42,7 +42,7 @@ None required by the library. Credentials are constructor args (`user`, `key`). 
 - **OddsHawk REST API** — `https://www.odds.software` (`/rest/odds*`, public catalog; `/rest/account`)
 - **oddshawk-rest** — API implementation and OpenAPI/`/docs` (sibling www repo)
 - **oddshawk-sdk** — JS sibling client (`@oddshawk/oddshawk-sdk`); same auth headers; includes WebSocket client this Python repo lacks
-- **cn-127** — docs/SDK refresh that landed this catalog surface, packaging, and guides (this branch)
+- **cn-127** — catalog/docs refresh: this SDK's Rest client, match helpers and packaging (the public guides/OpenAPI landed in oddshawk-rest)
 
 ## Public-docs policy (what must not ship)
 
