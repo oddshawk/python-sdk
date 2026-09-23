@@ -62,8 +62,8 @@ Default base URL is `https://www.odds.software`. Override with `Rest(..., base_u
 | `providers(from_now, search_params)` | `GET /rest/odds/providers` |
 | `odds(search_params)` | `GET /rest/odds` |
 
-Internal / admin routes are out of scope for this soft-launch package. The `/rest/match/*`
-helpers are covered under [Matching](#matching).
+Internal and administrative routes are out of scope for the public catalog and this SDK. The
+`/rest/match/*` helpers are covered under [Matching](#matching).
 
 ## Matching
 
@@ -90,11 +90,11 @@ if not match:
 
 - `name` is the name to resolve (a canonical name, provider spelling, or known alias); `time` is the
   event start in unix seconds; `sport` is required.
-- `event_name` is required by `match_selection` and must be the **canonical** event name (e.g. the
-  `event.name` returned by `/rest/match/event`) — it is used by the Betfair Exchange lookup.
+- `event_name` is required by `match_selection` and must be the **canonical** event name (for example
+  the `event.name` returned by `/rest/match/event`).
 - `init=True` registers an unresolved name for curation — the call that registers it still returns `False`.
-- `provider="Betfair Exchange"` uses an exact stored-odds lookup instead of the canonical dictionary
-  (except `match_team`, which has no Betfair Exchange branch).
+- Some lookups resolve to just the canonical name (for example `{"event": {"name": ...}}`) instead of
+  a dictionary record — treat those as successful resolutions.
 
 Full guide: https://odds.software/guides/matching.md
 
@@ -113,8 +113,24 @@ pytest
 
 Do not commit credentials. `example.py` is a manual smoke script only.
 
-## Soft-launch notes
+## Metering and coverage
 
-Entitlements / usage response headers and reserved error codes (`feed_down`, `catalog_dropped`, `payment_required`, etc.) are forthcoming with upstream API work — this SDK does not depend on them yet.
+Metering is live. Successful responses on the metered routes (`GET /rest/odds` and `/rest/match/*`)
+carry your current usage in the `X-Data-Points-This-Hour`, `X-Data-Points-Limit` and
+`X-Hour-Resets-At` response headers, and `GET /rest/account` reports the same limit plus your
+account's coverage grant. This package returns parsed JSON bodies only, so read those headers from a
+direct HTTP call if you need them.
 
-PyPI publish is Nathan-only (cn-123).
+Coverage is enforced on `GET /rest/odds` and `GET /rest/odds/events`: a request outside your
+account's grant is rejected with `403 {"error":"coverage_not_entitled"}` and nothing is charged. A
+capped account that is already over this hour's data-point limit gets
+`429 {"error":"throttled", ...}` before the request runs, with `retry_after_seconds` in the body.
+Both surface as `requests.HTTPError` carrying the status and body. Because both are failures, the
+`match_*` helpers return `False` for them, like any other match failure.
+
+The following codes are **planned and not emitted yet**: `feed_down`, `catalog_dropped`,
+`payment_required`. This SDK does not require them.
+
+See https://odds.software/guides/errors.md and https://odds.software/guides/coverage.md.
+
+PyPI publish is a maintainer (Nathan) step.

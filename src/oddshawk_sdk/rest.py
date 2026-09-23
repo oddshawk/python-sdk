@@ -169,9 +169,11 @@ class Rest:
 
         Common params: ``eventTime``, ``eventName``, ``sport``, ``provider``,
         ``competition``, ``competitionName``, ``selectionStatus``, ``sortField``,
-        ``sortDirection``, ``limit``, ``skip``, ``market``, ``fromNow``, ``eventId``,
+        ``sortDirection``, ``limit``, ``skip``, ``market``, ``fromNow``,
         ``updatedBefore``. Never cached. Limits above 200 require a specific event
         or ``sport``+``provider`` pair.
+
+        To pin a single event, pass ``eventName`` together with ``eventTime``.
         """
         params: MutableMapping[str, Any] = dict(search_params or {})
         path = build_url("/rest/odds", build_query(params=params))
@@ -240,8 +242,9 @@ class Rest:
         """``GET /rest/match/selection`` — resolve a provider selection name to a canonical selection.
 
         Available to any authenticated account, like the rest of ``/rest``. ``event_name`` is
-        required (it is used by the Betfair Exchange lookup). Returns the canonical match payload,
-        or ``False`` when the API has no match (or on failure).
+        required and must be the **canonical** event name (for example the ``event.name`` returned
+        by ``/rest/match/event``). Returns the canonical match payload, or ``False`` when the API has
+        no match (or on failure).
         """
         return self._match(
             "/rest/match/selection",

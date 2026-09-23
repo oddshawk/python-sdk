@@ -39,7 +39,22 @@ None required by the library. Credentials are constructor args (`user`, `key`). 
 
 ## Related systems
 
-- **OddsHawk REST API** — `https://www.odds.software` (`/rest/odds*`, public catalog)
+- **OddsHawk REST API** — `https://www.odds.software` (`/rest/odds*`, public catalog; `/rest/account`)
 - **oddshawk-rest** — API implementation and OpenAPI/`/docs` (sibling www repo)
 - **oddshawk-sdk** — JS sibling client (`@oddshawk/oddshawk-sdk`); same auth headers; includes WebSocket client this Python repo lacks
 - **cn-127** — docs/SDK refresh that landed this catalog surface, packaging, and guides (this branch)
+
+## Public-docs policy (what must not ship)
+
+The README, the package metadata and the shipped docstrings are customer-facing, so they name
+providers only as examples (`Bet365`) and never describe feed composition or the API's per-provider
+branches — that material is maintainer-only and lives in `oddshawk-rest`'s
+`okf-bundle/application.md` § *Internal-only details*. They also carry no internal task references,
+no "reserved / forthcoming" wording for the metering headers (live since cn-124/cn-125:
+`X-Data-Points-*`, `403 coverage_not_entitled`, `429 throttled`), and no `eventId` (an internal key,
+not part of the documented query surface — use `eventName` + `eventTime`). `tests/test_docs.py`
+fails the suite if any of that reappears.
+
+`GET /rest/account-usage` (the current-hour metering snapshot) is deliberately outside the public
+catalog and is not wrapped here: usage is already live on every metered response
+(`X-Data-Points-*`), in the `429` body, and via `GET /rest/account`'s `throttle` block.
