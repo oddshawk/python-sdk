@@ -1,20 +1,30 @@
 ---
 type: Reference
 title: OKF bundle index
-description: Entry point for oddshawk-python-sdk OKF docs.
-tags: [okf, oddshawk-python-sdk]
-timestamp: 2026-08-06T00:00:00Z
+description: Entry point for the python-sdk OKF docs.
+tags: [okf, oddshawk, python-sdk]
+timestamp: 2026-11-12T21:40:00Z
 ---
 
-# OKF bundle — oddshawk-python-sdk
+# OKF bundle — python-sdk
 
-**Client:** oddshawk  
-**Description:** Python SDK for the OddsHawk data feed
+The standard this bundle follows is
+`github:oddshawk/internal-documentation/okf-bundle/documentation.md`; the organisation's repositories,
+including this one, are listed in
+`github:oddshawk/internal-documentation/okf-bundle/repositories.md`.
 
-Workspace registry: [oddshawk-python-sdk row (PycharmProjects)](../../www/okf-bundle/workspace-registry.md)
+| Document | Content |
+|---|---|
+| [application.md](application.md) | What this package is, its function in the OddsHawk business, and the repositories it relates to |
+| [dependencies.md](dependencies.md) | The dependency classes, human pins, holds, cross-repo consumers and the commands that verify them |
+| [developer-acceptance-environment.md](developer-acceptance-environment.md) | How a developer starts the package locally, and what a change is accepted against |
+| [documentation.md](documentation.md) | This repository's additions to the documentation standard |
+| [domains/index.md](domains/index.md) | Every module, the file that defines it, its function, and the document that describes it |
+| [domains/package-root.md](domains/package-root.md) | The package root: what importing `oddshawk_sdk` gives a caller and what it guarantees |
+| [domains/rest-client.md](domains/rest-client.md) | The REST client: the odds catalog and name resolution an application reads, and the guarantees a caller holds it to |
+| [domains/request-signing.md](domains/request-signing.md) | Request signing: what the signature proves to the API and what it guarantees |
+| [git.md](git.md) | How the organisation git standard applies in this repository |
+| [regular-updates.md](regular-updates.md) | The log of when each dependency class was last checked and last updated |
+| [testing.md](testing.md) | The kinds of test, the command for each, and what is measured |
 
-| Doc | Role |
-|-----|------|
-| [application.md](application.md) | Runtime architecture, integrations, env vars |
-| [testing.md](testing.md) | Agent testing, adversarial review, human handoff |
-| [dependencies.md](dependencies.md) | Dependency locations, pins, Dependabot / audit cadence |
+Repo-root [AGENTS.md](../AGENTS.md) points here.

@@ -1,44 +1,48 @@
 ---
 type: Reference
 title: Dependencies
-description: Dependency locations, human pins, and check/update cadence for oddshawk-python-sdk.
-tags: [okf, dependencies, oddshawk-python-sdk]
-timestamp: 2026-08-21T00:00:00Z
+description: The dependency classes of oddshawk-sdk, its human pins and holds, its cross-repo consumers, and the commands that verify them, per `github:oddshawk/internal-documentation/okf-bundle/dependencies.md`.
+tags: [okf, oddshawk, dependencies, python-sdk]
+timestamp: 2026-11-12T21:56:00Z
 ---
 
-# Dependencies — oddshawk-python-sdk
+## Summary and classes
 
-cn-123 SDK wave (Phase 3). PyPI package name `oddshawk-sdk` (GitHub `oddshawk/python-sdk`).
+| kind | class | members |
+|---|---|---|
+| package | Application packages | `pyproject.toml`: the runtime dependency `requests>=2.32,<3` |
+| package | Application packages | `pyproject.toml`: the `dev` extra, `pytest>=8.3` and `pip-audit>=2.7` |
+| package | Application packages | `pyproject.toml`: the build requirements `setuptools>=68` and `wheel` |
+| package | Application packages | `.github/dependabot.yml`: weekly pip updates at `open-pull-requests-limit: 10` |
+| runtime | Language runtime | `pyproject.toml`: `requires-python = ">=3.10"`, claiming 3.10 through 3.13 in its classifiers |
+| ci | CI toolchain | `.circleci/config.yml`: the image `cimg/python:3.12`, the orb `circleci/slack@6.1.3`, and the `test` job's steps |
+| deploy | — | none: no container image, service, server or database is deployed from this repository |
 
-## Summary
+## Human pins
 
-| Class | Locations | Human pins | Check | Owner |
-|-------|-----------|------------|-------|-------|
-| pip | `pyproject.toml` | `requests>=2.32,<3` | weekly | agent → nathan |
-| Python CI | `.circleci/config.yml` | `cimg/python:3.12`; `requires-python >=3.10` | monthly | agent → nathan |
-| CI audit | `pip-audit --desc on --skip-editable` | blocking on `test` (no `--strict` until PyPI) | weekly | agent |
-| Publish | PyPI | Nathan-only twine/upload | on merge | nathan |
+| kind | item | repos | pinned at |
+|---|---|---|---|
 
-## (a) Locations and pins
+## Held / do-not-bump
 
-- Dependabot weekly pip (no Docker — no Dockerfile)
-- CircleCI `test`: editable install `.[dev]` + `py_compile` + `pytest` + blocking `pip-audit --desc on --skip-editable` (drop `--strict` until first PyPI upload)
-- **Highlights:** `requests` runtime; `pytest` + `pip-audit` as optional `dev` extras
-- **Packaging note:** minimal installable layout for PyPI (`src/oddshawk_sdk`). Parallel cn-127 tip has a richer catalog refresh on a separate branch — reconcile before dual-merge if both land.
+| kind | item | repos | held at | blocking reason | unblock condition |
+|---|---|---|---|---|---|
 
-## (b) Cadence
+## Cross-repo consumers
 
-Weekly Dependabot + audit CI; Python image hop with LTS/policy; publish handoff after green merge (Nathan).
+| kind | item | provider | consumers | version constraint |
+|---|---|---|---|---|
+| package | `oddshawk-sdk` | `python-sdk` | none known | — |
 
-## (c) Host stack
+## Verify
 
-| Layer | Detail |
-|-------|--------|
-| Deploy | Library only — no VM/K8s deploy from this repo |
-| Runtime | Consumer Python ≥3.10; CI image 3.12 |
-
-## Inherited / out-of-repo
-
-- Credentials rotation: cn-37
-- Catalog / OpenAPI surface refresh + WS client: cn-127
-- Direct consumers (Phase 4): **none found** in workspace as of 2026-08-21 (path/venv only historically)
+| kind | item | command | expected result |
+|---|---|---|---|
+| package | install | `pip install -e ".[dev]"` | exit 0: the package and its `dev` extra are installed |
+| package | unit tests | `pytest` | exit 0: the full suite passes |
+| package | syntax | `python -m py_compile src/oddshawk_sdk/rest.py src/oddshawk_sdk/hashing.py src/oddshawk_sdk/__init__.py example.py` | exit 0 |
+| package | audit gate | `pip-audit --desc on --skip-editable` | exit 0: no advisory of any severity; the editable package itself is skipped |
+| ci | image the suite runs on | `grep 'image: cimg/python' .circleci/config.yml` | `- image: cimg/python:3.12` |
+| ci | slack orb | `grep 'slack:' .circleci/config.yml` | `slack: circleci/slack@6.1.3` |
+| ci | syntax step as this job runs it | `grep -A2 'name: Syntax' .circleci/config.yml` | the step compiles `rest.py`, `__init__.py` and `example.py`; the command above adds `hashing.py` |
+| ci | audit step as this job runs it | `grep -A2 'name: pip-audit' .circleci/config.yml` | the step runs `pip-audit --desc on --skip-editable` and blocks the job |

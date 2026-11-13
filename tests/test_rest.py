@@ -1,4 +1,4 @@
-"""Smoke tests for OddsHawk Python SDK hash / Rest surface (cn-123, updated by cn-127)."""
+"""Tests for the REST client and its request signing."""
 
 import hashlib
 import time
