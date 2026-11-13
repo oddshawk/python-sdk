@@ -1,4 +1,4 @@
-"""Time-based hash for OddsHawk ``X-OH-Hash`` / ``X-OH-HASH`` headers."""
+"""The signature the OddsHawk API checks, carried in the ``X-OH-Hash`` request header."""
 
 from __future__ import annotations
 
@@ -7,15 +7,12 @@ import time
 
 
 def generate_hash(key: str, timestamp: int | None = None) -> str:
-    """Build the auth hash wire value.
+    """Answers the wire value the API accepts: the SHA-256 hex digest of the key followed by the
+    second, then that second in lowercase hex.
 
-    Algorithm (matches the JS SDK and OddsHawk REST auth):
-
-    1. Take unix seconds (UTC).
-    2. SHA-256 hex digest of ``password + str(unix_seconds)`` (UTF-8).
-    3. Append the unix seconds as lowercase hex (no ``0x`` prefix).
-
-    The server reads the last 8 characters of the result as the hex timestamp.
+    :param key: The account's API key, the only secret the value is computed from.
+    :param timestamp: Unix second in UTC to name, or the current one.
+    :return: The value carried in the request's signature header.
     """
     if timestamp is None:
         timestamp = int(time.time())

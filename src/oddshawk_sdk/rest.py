@@ -1,4 +1,4 @@
-"""REST client for the OddsHawk REST API."""
+"""The OddsHawk REST client, with the query and URL helpers its reads are built from."""
 
 from __future__ import annotations
 
@@ -13,10 +13,11 @@ DEFAULT_BASE_URL = "https://www.odds.software"
 
 
 def build_query(from_now: Optional[bool] = None, params: Optional[Mapping[str, Any]] = None) -> str:
-    """Build a query string for catalog endpoints.
+    """Booleans go on the wire lowercase, and a ``None`` value is omitted.
 
-    ``from_now`` maps to the ``fromNow`` query param when not ``None``.
-    Other params are URL-encoded; ``None`` values are omitted.
+    :param from_now: Sent first as ``fromNow``; ``None`` sends none.
+    :param params: Search keys to send.
+    :return: The URL-encoded query string, empty when nothing is sent.
     """
     items: list[tuple[str, Any]] = []
     if from_now is not None:
@@ -33,25 +34,20 @@ def build_query(from_now: Optional[bool] = None, params: Optional[Mapping[str, A
 
 
 def build_url(path: str, query: str = "") -> str:
-    """Join a path with an optional query string (path must start with ``/``)."""
+    """An empty query is left off.
+
+    :param path: Request path, which the client expects to start with ``/``.
+    :param query: Encoded query string, as ``build_query`` answers.
+    :return: The path, with the query appended after ``?`` when there is one.
+    """
     if not query:
         return path
     return f"{path}?{query}"
 
 
 class Rest:
-    """HMAC-authenticated client for the OddsHawk REST API.
-
-    Catalog methods mirror the OpenAPI public surface used by the docs quickstart:
-    ``authenticate``, ``version``, ``sports``, ``competitions``, ``events``,
-    ``markets``, ``providers``, and ``odds``.
-
-    The ``match_*`` methods wrap the ``/rest/match/*`` endpoints, documented in the OpenAPI
-    ``Matching`` section. Like every other ``/rest`` endpoint, they are available to any
-    authenticated account. They return ``False`` on failure, mirroring the JS SDK.
-
-    WebSocket streaming is not included in this package yet (REST-first).
-    """
+    """An authenticated client for one OddsHawk account: the odds catalog, and the resolution of a
+    provider's own spelling to the canonical record."""
 
     def __init__(
         self,
@@ -62,6 +58,14 @@ class Rest:
         session: Optional[requests.Session] = None,
         timeout: float = 15.0,
     ) -> None:
+        """A client is bound to one account and one root URL.
+
+        :param user: The account's user name, sent as ``X-OH-User``.
+        :param key: The account's API key, which signs every request.
+        :param base_url: Root the request paths are appended to; trailing slashes are dropped.
+        :param session: HTTP session to send through, or a new one.
+        :param timeout: Seconds a single request may take.
+        """
         self.user = user
         self.key = key
         self.base_url = base_url.rstrip("/")
@@ -75,6 +79,15 @@ class Rest:
         }
 
     def _get(self, path: str, *, timestamp: int | None = None) -> Any:
+        """Sends an authenticated GET and answers the body parsed as JSON.
+
+        :param path: Request path appended to the base URL.
+        :param timestamp: Unix second to sign for, or the current one.
+        :return: The response body parsed as JSON.
+        :raises requests.HTTPError: The API answered non-2xx; the message carries its status and body.
+        :raises requests.RequestException: The request did not complete.
+        :raises ValueError: The body was not JSON.
+        """
         url = self.base_url + path
         response = self._session.get(
             url,
@@ -91,15 +104,15 @@ class Rest:
         return response.json()
 
     def authenticate(self) -> Any:
-        """``GET /authenticate`` — validate credentials (and establish session cookie if used)."""
         return self._get("/authenticate")
 
     def version(self) -> Any:
-        """``GET /rest`` — public API version payload."""
         return self._get("/rest")
 
     def sports(self, from_now: bool = True) -> Any:
-        """``GET /rest/odds/sports`` — distinct sport names."""
+        """
+        :param from_now: Sent as the ``fromNow`` parameter.
+        """
         path = build_url("/rest/odds/sports", build_query(from_now=from_now))
         return self._get(path)
 
@@ -108,10 +121,10 @@ class Rest:
         from_now: bool = True,
         search_params: Optional[Mapping[str, Any]] = None,
     ) -> Any:
-        """``GET /rest/odds/competitions``.
-
-        ``search_params`` may include ``sport`` and ``provider``.
-        Specifying ``provider`` bypasses cache and may be slower.
+        """
+        :param from_now: Sent as the ``fromNow`` parameter.
+        :param search_params: The endpoint honours ``sport`` and ``provider``.
+        :return: The competitions that match.
         """
         path = build_url(
             "/rest/odds/competitions",
@@ -124,9 +137,11 @@ class Rest:
         from_now: bool = True,
         search_params: Optional[Mapping[str, Any]] = None,
     ) -> Any:
-        """``GET /rest/odds/events``.
-
-        ``search_params`` may include ``sport``, ``provider``, ``competition``, and ``market``.
+        """
+        :param from_now: Sent as the ``fromNow`` parameter.
+        :param search_params: The endpoint honours ``sport``, ``provider``, ``competition`` and
+            ``market``.
+        :return: The events that match.
         """
         path = build_url(
             "/rest/odds/events",
@@ -139,9 +154,10 @@ class Rest:
         from_now: bool = True,
         search_params: Optional[Mapping[str, Any]] = None,
     ) -> Any:
-        """``GET /rest/odds/markets``.
-
-        ``search_params`` may include ``sport``, ``provider``, and ``competition``.
+        """
+        :param from_now: Sent as the ``fromNow`` parameter.
+        :param search_params: The endpoint honours ``sport``, ``provider`` and ``competition``.
+        :return: The markets that match.
         """
         path = build_url(
             "/rest/odds/markets",
@@ -154,9 +170,10 @@ class Rest:
         from_now: bool = True,
         search_params: Optional[Mapping[str, Any]] = None,
     ) -> Any:
-        """``GET /rest/odds/providers``.
-
-        ``search_params`` may include ``sport`` and ``competition``.
+        """
+        :param from_now: Sent as the ``fromNow`` parameter.
+        :param search_params: The endpoint honours ``sport`` and ``competition``.
+        :return: The providers that match.
         """
         path = build_url(
             "/rest/odds/providers",
@@ -165,25 +182,25 @@ class Rest:
         return self._get(path)
 
     def odds(self, search_params: Optional[Mapping[str, Any]] = None) -> Any:
-        """``GET /rest/odds`` — search odds rows.
+        """Searches the odds rows of ``GET /rest/odds``; every call is a fresh request.
 
-        Common params: ``eventTime``, ``eventName``, ``sport``, ``provider``,
-        ``competition``, ``competitionName``, ``selectionStatus``, ``sortField``,
-        ``sortDirection``, ``limit``, ``skip``, ``market``, ``fromNow``,
-        ``updatedBefore``. Never cached. Limits above 200 require a specific event
-        or ``sport``+``provider`` pair.
-
-        To pin a single event, pass ``eventName`` together with ``eventTime``.
+        :param search_params: The endpoint honours ``eventTime``,
+            ``eventName``, ``sport``, ``provider``, ``competition``, ``competitionName``,
+            ``selectionStatus``, ``sortField``, ``sortDirection``, ``limit``, ``skip``, ``market``,
+            ``fromNow`` and ``updatedBefore``.
+        :return: The odds rows that match.
         """
         params: MutableMapping[str, Any] = dict(search_params or {})
         path = build_url("/rest/odds", build_query(params=params))
         return self._get(path)
 
     def _match(self, path: str, params: Mapping[str, Any]) -> Any:
-        """GET a ``/rest/match/*`` endpoint, mirroring the JS SDK contract.
+        """Resolves through a ``/rest/match/*`` endpoint, answering ``False`` instead of raising.
 
-        Match helpers return ``False`` on any failure (400/403/404/transport) instead of raising,
-        matching ``@oddshawk/oddshawk-sdk``.
+        :param path: The match endpoint's path.
+        :param params: Query parameters, as ``_match_params`` builds them.
+        :return: The canonical match, or ``False`` on a request failure
+            (``requests.RequestException``) or a body that is not JSON (``ValueError``).
         """
         try:
             return self._get(build_url(path, build_query(params=params)))
@@ -199,6 +216,15 @@ class Rest:
         init: bool,
         event_name: Optional[str] = None,
     ) -> dict[str, Any]:
+        """The query parameters a ``/rest/match/*`` read sends.
+
+        :param provider: The provider the spelling came from.
+        :param name: That provider's own spelling.
+        :param time: Event start in unix seconds.
+        :param sport: The sport the lookup is scoped to.
+        :param init: Registers an unresolved name for curation when ``True``.
+        :param event_name: The canonical event name, sent as ``event``; the selection lookup requires it.
+        """
         params: dict[str, Any] = {
             "provider": provider,
             "name": name,
@@ -218,12 +244,13 @@ class Rest:
         sport: str,
         init: bool = False,
     ) -> Any:
-        """``GET /rest/match/event`` — resolve a provider event name to a canonical event.
-
-        Available to any authenticated account, like the rest of ``/rest``. Returns the canonical
-        match payload, or ``False`` when the API has no match (or on failure). ``init=True``
-        registers an unresolved name for curation — the call that registers it still returns
-        ``False``.
+        """
+        :param provider: The provider the spelling came from.
+        :param name: The provider's spelling of the event.
+        :param time: Event start in unix seconds.
+        :param sport: The sport the event belongs to.
+        :param init: Registers an unresolved name for curation when ``True``; that call still answers ``False``.
+        :return: The canonical match, or ``False`` when nothing resolves or the request fails.
         """
         return self._match(
             "/rest/match/event",
@@ -239,12 +266,14 @@ class Rest:
         event_name: str,
         init: bool = False,
     ) -> Any:
-        """``GET /rest/match/selection`` — resolve a provider selection name to a canonical selection.
-
-        Available to any authenticated account, like the rest of ``/rest``. ``event_name`` is
-        required and must be the **canonical** event name (for example the ``event.name`` returned
-        by ``/rest/match/event``). Returns the canonical match payload, or ``False`` when the API has
-        no match (or on failure).
+        """
+        :param provider: The provider the spelling came from.
+        :param name: The provider's spelling of the selection.
+        :param time: Event start in unix seconds.
+        :param sport: The sport the selection belongs to.
+        :param event_name: The canonical event name, as ``/rest/match/event`` returned it.
+        :param init: Registers an unresolved name for curation when ``True``.
+        :return: The canonical match, or ``False`` when nothing resolves or the request fails.
         """
         return self._match(
             "/rest/match/selection",
@@ -259,10 +288,13 @@ class Rest:
         sport: str,
         init: bool = False,
     ) -> Any:
-        """``GET /rest/match/team`` — resolve a provider team name to a canonical team.
-
-        Available to any authenticated account, like the rest of ``/rest``. Returns the canonical
-        match payload, or ``False`` when the API has no match (or on failure).
+        """
+        :param provider: The provider the spelling came from.
+        :param name: The provider's spelling of the team.
+        :param time: Event start in unix seconds.
+        :param sport: The sport the team belongs to.
+        :param init: Registers an unresolved name for curation when ``True``.
+        :return: The canonical match, or ``False`` when nothing resolves or the request fails.
         """
         return self._match(
             "/rest/match/team",
@@ -277,10 +309,13 @@ class Rest:
         sport: str,
         init: bool = False,
     ) -> Any:
-        """``GET /rest/match/competition`` — resolve a provider competition name to a canonical one.
-
-        Available to any authenticated account, like the rest of ``/rest``. Returns the canonical
-        match payload, or ``False`` when the API has no match (or on failure).
+        """
+        :param provider: The provider the spelling came from.
+        :param name: The provider's spelling of the competition.
+        :param time: Event start in unix seconds.
+        :param sport: The sport the competition belongs to.
+        :param init: Registers an unresolved name for curation when ``True``.
+        :return: The canonical match, or ``False`` when nothing resolves or the request fails.
         """
         return self._match(
             "/rest/match/competition",
