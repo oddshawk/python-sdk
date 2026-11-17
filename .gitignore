@@ -6,5 +6,6 @@ tmp-docs/
 dist/
 build/
 .pytest_cache/
+.coverage
 .pip-audit-cache/
 .DS_Store

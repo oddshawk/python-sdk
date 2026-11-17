@@ -3,7 +3,7 @@ type: Reference
 title: Testing
 description: The kinds of test this repository has, how each is run, what is measured, and this repository's additions to the OddsHawk testing standard.
 tags: [okf, testing, python-sdk]
-timestamp: 2026-11-12T23:43:00Z
+timestamp: 2026-11-17T13:19:32Z
 ---
 
 # Testing — python-sdk
@@ -12,31 +12,31 @@ Additive to the OddsHawk testing standard `github:oddshawk/internal-documentatio
 
 ## Setup
 
-Python 3.10 or newer (`requires-python`), with the package installed editable and its `dev` extra present: [developer-acceptance-environment.md](developer-acceptance-environment.md) § Start carries the commands that do it. The suite needs no credentials and reaches no network.
+Set up as [developer-acceptance-environment.md](developer-acceptance-environment.md) § Start does. The suite needs no credentials and reaches no network.
 
 ## Kinds of test
 
 | Kind | Where | How to run |
 |---|---|---|
-| Unit | `tests/` — the client's HTTP session is a `MagicMock` and the clock is pinned, so no request leaves the process | `pytest` |
+| Unit | `tests/` | `pytest` |
 
 No integration kind and no end-to-end kind is declared: nothing exercises a real HTTP boundary, and nothing drives the package against a running API.
 
 ## Commands
 
-Run every row before handoff.
-
 | Check | Command | Pass signal |
 |---|---|---|
 | Syntax | `python -m py_compile src/oddshawk_sdk/rest.py src/oddshawk_sdk/hashing.py src/oddshawk_sdk/__init__.py example.py` | exit 0 |
-| Unit tests | `pytest` | exit 0 — the **full** suite, with no `-k` filter |
+| Unit tests | `pytest` | exit 0 — the **full** suite, with no `-k` filter, and each of the four measured rows at 100% line and branch ([Coverage](#coverage)) |
 | Audit gate | `pip-audit --desc on --skip-editable` | exit 0: no advisory of any severity; the editable checkout itself is skipped and every declared dependency is audited |
 
-The CI job runs these checks too, over the file list its own syntax step names — [dependencies.md](dependencies.md) § Verify records each job step as `.circleci/config.yml` runs it.
+The CI job runs these checks too; [dependencies.md](dependencies.md) § Verify records each step as `.circleci/config.yml` runs it.
 
 ## Coverage
 
-Nothing is measured: `pytest-cov` is not a dependency and no command passes `--cov`, so no run produces a coverage report.
+Line and branch **test** coverage is graded over exactly four files: `src/oddshawk_sdk/__init__.py`, `src/oddshawk_sdk/hashing.py`, `src/oddshawk_sdk/rest.py` and `example.py`. `example.py` is in the set by path, because the stand-in program at the repository root sits outside the `src/` import root. Every other file in the checkout, `tests/` included, is outside the graded set. [pyproject.toml](../pyproject.toml) configures the set and the gate that grades it.
+
+This repository holds that set to 100% of lines and 100% of branches, a stricter bar than the organisation goal.
 
 Exceptions to the standard's coverage goal: none are recorded.
 
@@ -44,7 +44,6 @@ Exceptions to the standard's coverage goal: none are recorded.
 
 ## Repo rules
 
-- Hand off only on the full suite.
 - Do not point a test at the production API with real credentials unless the owner explicitly scoped that run.
 - Do not commit a credential, an API key or a filled-in `example.py`.
 - Do not publish to PyPI from an agent session.

@@ -28,6 +28,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=8.3",
+    "pytest-cov>=6",
     "pip-audit>=2.7",
 ]
 
@@ -42,3 +43,17 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+addopts = "--cov --cov-branch"
+
+[tool.coverage.run]
+source = ["src/oddshawk_sdk", "."]
+
+[tool.coverage.report]
+fail_under = 100
+precision = 2
+include = [
+    "example.py",
+    "src/oddshawk_sdk/__init__.py",
+    "src/oddshawk_sdk/hashing.py",
+    "src/oddshawk_sdk/rest.py",
+]
